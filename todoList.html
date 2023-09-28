@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    body {
+      background-color: #f5f5f5;
+    }
+
+    .box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 100px;
+    }
+
+    p {
+      color: #DBC7ED;
+      font-size: 150px;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .ipt input {
+      /* outline: none; */
+      border: none;
+      padding: 1rem 2rem;
+      width: 550px;
+      height: 50px;
+      color: #444;
+      font-size: 2rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .ipt input:focus {
+      outline-color: #DBC7ED;
+    }
+
+    .todos {
+      background-color: #fff;
+      padding: 0;
+      margin: 0;
+      list-style-type: none;
+    }
+
+    .todos li {
+      border-top: 1px solid #e5e5e5;
+      cursor: pointer;
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin: 1px;
+    }
+
+    .todos li button {
+      padding: 10px;
+      width: 80px;
+      color: #fff;
+      background-color: rgb(88, 171, 226);
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+
+    .todos li button:hover {
+      cursor: pointer;
+    }
+
+    .todos li .over {
+      float: right;
+      background-color: rgb(212, 62, 62);
+    }
+
+    .todos li .delect {
+      float: right;
+    }
+
+    .todos li.completed {
+      /* 被取消 */
+      color: #b6b6b6;
+      text-decoration: line-through;
+    }
+
+    .small {
+      color: #b5b5b5;
+      margin-top: 1rem;
+      font-size: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <p>todos</p>
+  <p class="small">回车键添加todo，数据要保持持久化，保证页面刷新后数据不丢失</p>
+  <div class="box">
+    <div class="ipt">
+      <input type="text" placeholder="Enter your todo" autocomplete="off">
+      <ul class="todos">
+      </ul>
+    </div>
+  </div>
+
+</body>
+<script>
+  //获取到需要操作的dom元素
+  var ipt = document.querySelector('input');
+  var todos = document.querySelector('.todos');
+  var over = document.querySelectorAll('.over');
+  var delect = document.querySelectorAll('.delect');
+
+  //添加li元素的函数
+  function addLi(text, completed = false) {
+    if (text == '') return
+    var li = document.createElement('li');
+    //创建一个span
+    if (completed) {
+      //添加类名
+      li.classList.add('completed');
+    }
+    li.innerHTML += `<span>${text}</span>
+    <button class="over">${completed == true ? '恢复' : '结束'}</button>
+    <button class="delect">删除</button>
+    `
+    todos.appendChild(li);
+  }
+  //添加监听ipt输入后的键盘：enter事件
+  ipt.addEventListener('keydown', function (e) {
+    //判断为空值
+
+    if (e.keyCode === 13) {
+      addLi(ipt.value)
+      //将添加成功的todos，添加到本地内存当中
+      //获取本地
+      let todos = JSON.parse(localStorage.getItem('todos')) || []
+      todos.push({
+        text: ipt.value,
+        completed: false
+      })
+      localStorage.setItem('todos', JSON.stringify(todos))
+      ipt.value = ''
+    }
+  })
+  //监听修改状态的按钮事件
+  todos.addEventListener('click', function (e) {
+    if (e.target.classList.contains('over')) {
+      //获取到是哪一个over按钮被点击了
+      const li = e.target.parentNode
+      li.classList.toggle('completed')
+      //修改btn的html
+      e.target.innerHTML = li.classList.contains('completed') ? '恢复' : '结束'
+      //修改本地的数
+      let todos = JSON.parse(localStorage.getItem('todos')) || []
+      let list = li.innerText.split('\n')
+      todos.forEach((todo, index) => {
+        //判断拿到第一个数据
+        if (todo.text === list[0]) {
+          todo.completed = !todo.completed
+        }
+      })
+      //将更新后的数据1更新到本地
+      localStorage.setItem('todos', JSON.stringify(todos))
+    }
+  })
+  //监听删除按钮事件
+  todos.addEventListener('click', function (e) {
+    if (e.target.classList.contains('delect')) {
+      //获取到是哪一个delect按钮被点击了
+      const li = e.target.parentNode
+      li.remove()
+      //修改本地的数据
+      let todos = JSON.parse(localStorage.getItem('todos')) || []
+      let list = li.innerText.split('\n')
+      todos.forEach((todo, index) => {
+        //判断拿到第一个数据
+        if (todo.text === list[0]) {
+          //删除该元素
+          todos.splice(index, 1)
+        }
+      })
+      //将更新后的数据1更新到本地
+      localStorage.setItem('todos', JSON.stringify(todos))
+    }
+  })
+  //页面刷新读取本地的数据
+  let todoLists = JSON.parse(localStorage.getItem('todos')) || []
+  //将数据渲染到页面中
+  todoLists.forEach((todo, index) => {
+    addLi(todo.text, todo.completed)
+  })
+</script>
+
+</html>
